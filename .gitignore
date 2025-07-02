@@ -49,3 +49,11 @@ yarn.lock
 
 # pmpm
 pnpm-lock.yaml
+/.claude/settings.local.json
+/.idea/codeStyles/codeStyleConfig.xml
+/.idea/codeStyles/Project.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/.gitignore
+/.idea/modules.xml
+/.idea/vcs.xml
+/.idea/webapp-conversation.iml

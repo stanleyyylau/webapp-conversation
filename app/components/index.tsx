@@ -22,13 +22,15 @@ import AppUnavailable from '@/app/components/app-unavailable'
 import { API_KEY, APP_ID, APP_INFO, isShowPrompt, promptTemplate } from '@/config'
 import type { Annotation as AnnotationType } from '@/types/log'
 import { addFileInfos, sortAgentSorts } from '@/utils/tools'
+import { useSearchParams } from 'next/navigation'
 
 export type IMainProps = {
   params: any
 }
 
-const Main: FC<IMainProps> = () => {
+const Main: FC<IMainProps> = ({ params }) => {
   const { t } = useTranslation()
+  const searchParams = useSearchParams()
   const media = useBreakpoints()
   const isMobile = media === MediaType.mobile
   const hasSetAppConfig = APP_ID && API_KEY
@@ -270,6 +272,18 @@ const Main: FC<IMainProps> = () => {
           setCurrConversationId(_conversationId, APP_ID, false)
 
         setInited(true)
+        // 从 URL 参数获取 input
+        if (!isNotNewConversation) {
+          // Auto set input from URL search params if they exist
+          const urlParams: Record<string, any> = {}
+          searchParams.forEach((value, key) => {
+            urlParams[key] = value
+          })
+
+          if (Object.keys(urlParams).length > 0) {
+            handleStartChat(urlParams)
+          }
+        }
       }
       catch (e: any) {
         if (e.status === 404) {
