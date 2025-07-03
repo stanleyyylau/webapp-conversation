@@ -8,7 +8,7 @@ export interface MessageEndData {
     metadata?: any // 使用 any 类型来兼容不同的 metadata 结构
 }
 
-export const checkTokenAvailability = (inputs?: Record<string, any> | null) => {
+export const checkTokenAvailability = async (inputs?: Record<string, any> | null) => {
     console.log('=== Token Availability Check ===')
 
     if (!inputs?.dataset_id) {

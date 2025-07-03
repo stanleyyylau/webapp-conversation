@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
   const { user } = getInfo(request)
 
   // 检查当前站点有没有 token
-  const tokenCheck = checkTokenAvailability(inputs)
+  const tokenCheck = await checkTokenAvailability(inputs)
   if (!tokenCheck.hasToken) {
     return new Response(JSON.stringify({
       error: 'Insufficient tokens',
