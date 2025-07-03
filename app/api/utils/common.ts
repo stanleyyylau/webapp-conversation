@@ -15,7 +15,7 @@ export const getInfo = (request: NextRequest) => {
 }
 
 export const setSession = (sessionId: string) => {
-  return { 'Set-Cookie': `session_id=${sessionId}` }
+  return { 'Set-Cookie': `session_id=${sessionId}; SameSite=None; Secure` }
 }
 
 export const client = new ChatClient(API_KEY, API_URL || undefined)
