@@ -23,6 +23,7 @@ import { API_KEY, APP_ID, APP_INFO, isShowPrompt, promptTemplate } from '@/confi
 import type { Annotation as AnnotationType } from '@/types/log'
 import { addFileInfos, sortAgentSorts } from '@/utils/tools'
 import { useSearchParams } from 'next/navigation'
+import { deductTokens } from '@/app/api/utils/llm-token'
 
 export type IMainProps = {
   params: any
@@ -536,6 +537,10 @@ const Main: FC<IMainProps> = ({ params }) => {
         })
       },
       onMessageEnd: (messageEnd) => {
+        
+        // 调用token扣除方法
+        deductTokens(messageEnd, currInputs)
+
         if (messageEnd.metadata?.annotation_reply) {
           responseItem.id = messageEnd.id
           responseItem.annotation = ({
