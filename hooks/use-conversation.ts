@@ -9,20 +9,31 @@ type ConversationInfoType = Omit<ConversationItem, 'inputs' | 'id'>
 function useConversation() {
   const [conversationList, setConversationList] = useState<ConversationItem[]>([])
   const [currConversationId, doSetCurrConversationId, getCurrConversationId] = useGetState<string>('-1')
+
+  // Helper to get session_id from cookie
+  const getSessionIdFromCookie = () => {
+    if (typeof document === 'undefined') return ''; // Handle SSR
+    const cookies = document.cookie.split(';').map(cookie => cookie.trim());
+    const sessionCookie = cookies.find(cookie => cookie.startsWith('session_id='));
+    return sessionCookie ? sessionCookie.split('=')[1] : '';
+  };
+
   // when set conversation id, we do not have set appId
   const setCurrConversationId = (id: string, appId: string, isSetToLocalStroge = true, newConversationName = '') => {
     doSetCurrConversationId(id)
     if (isSetToLocalStroge && id !== '-1') {
-      // conversationIdInfo: {[appId1]: conversationId1, [appId2]: conversationId2}
+      // conversationIdInfo: {[dynamicSessionId]: conversationId1}
+      const dynamicSessionId = getSessionIdFromCookie(); // Intercept and use session_id
       const conversationIdInfo = globalThis.localStorage?.getItem(storageConversationIdKey) ? JSON.parse(globalThis.localStorage?.getItem(storageConversationIdKey) || '') : {}
-      conversationIdInfo[appId] = id
+      conversationIdInfo[dynamicSessionId] = id
       globalThis.localStorage?.setItem(storageConversationIdKey, JSON.stringify(conversationIdInfo))
     }
   }
 
   const getConversationIdFromStorage = (appId: string) => {
+    const dynamicSessionId = getSessionIdFromCookie(); // Intercept and use session_id
     const conversationIdInfo = globalThis.localStorage?.getItem(storageConversationIdKey) ? JSON.parse(globalThis.localStorage?.getItem(storageConversationIdKey) || '') : {}
-    const id = conversationIdInfo[appId]
+    const id = conversationIdInfo[dynamicSessionId]
     return id
   }
 
