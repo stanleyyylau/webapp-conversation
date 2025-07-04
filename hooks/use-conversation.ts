@@ -43,10 +43,32 @@ function useConversation() {
   const resetNewConversationInputs = () => {
     if (!newConversationInputs)
       return
+
+    // 保存 URL 参数
+    const urlParams: Record<string, any> = {};
+    if (typeof document !== 'undefined') {
+      const urlSearchParams = new URLSearchParams(window.location.search);
+      urlSearchParams.forEach((value, key) => {
+        urlParams[key] = value;
+      });
+    }
+
     setNewConversationInputs(produce(newConversationInputs, (draft) => {
       Object.keys(draft).forEach((key) => {
-        draft[key] = ''
+        // 如果是 URL 参数中的键，保留其值
+        if (urlParams[key]) {
+          draft[key] = urlParams[key];
+        } else {
+          draft[key] = '';
+        }
       })
+
+      // 添加 URL 参数中的新键
+      Object.keys(urlParams).forEach((key) => {
+        if (!draft[key]) {
+          draft[key] = urlParams[key];
+        }
+      });
     }))
   }
   const [existConversationInputs, setExistConversationInputs] = useState<Record<string, any> | null>(null)

@@ -88,7 +88,7 @@ const Main: FC<IMainProps> = ({ params }) => {
   const [conversationIdChangeBecauseOfNew, setConversationIdChangeBecauseOfNew, getConversationIdChangeBecauseOfNew] = useGetState(false)
   const [isChatStarted, { setTrue: setChatStarted, setFalse: setChatNotStarted }] = useBoolean(false)
   const handleStartChat = (inputs: Record<string, any>) => {
-    createNewChat()
+    createNewChat(inputs)
     setConversationIdChangeBecauseOfNew(true)
     setCurrInputs(inputs)
     setChatStarted()
@@ -163,16 +163,29 @@ const Main: FC<IMainProps> = ({ params }) => {
 
   const handleConversationIdChange = (id: string) => {
     if (id === '-1') {
-      createNewChat()
-      setConversationIdChangeBecauseOfNew(true)
+      // 获取 URL 参数
+      const urlParams: Record<string, any> = {};
+      searchParams.forEach((value, key) => {
+        urlParams[key] = value;
+      });
+
+      // 创建新对话
+      createNewChat(urlParams);
+
+      // 如果 URL 参数存在，调用 handleStartChat
+      if (Object.keys(urlParams).length > 0) {
+        handleStartChat(urlParams);
+      } else {
+        // 没有参数时只创建新对话
+        setConversationIdChangeBecauseOfNew(true);
+      }
+    } else {
+      setConversationIdChangeBecauseOfNew(false);
     }
-    else {
-      setConversationIdChangeBecauseOfNew(false)
-    }
-    // trigger handleConversationSwitch
-    setCurrConversationId(id, APP_ID)
-    hideSidebar()
-  }
+    // 设置当前对话 ID
+    setCurrConversationId(id, APP_ID);
+    hideSidebar();
+  };
 
   /*
   * chat info. chat is under conversation.
@@ -186,16 +199,25 @@ const Main: FC<IMainProps> = ({ params }) => {
   }, [chatList, currConversationId])
   // user can not edit inputs if user had send message
   const canEditInputs = !chatList.some(item => item.isAnswer === false) && isNewConversation
-  const createNewChat = () => {
+  const createNewChat = (inputs?: Record<string, any> | null) => {
     // if new chat is already exist, do not create new chat
     if (conversationList.some(item => item.id === '-1'))
       return
+
+    // 获取 URL 参数，如果没有提供 inputs 且 newConversationInputs 为 null
+    let chatInputs = inputs || newConversationInputs;
+    if (!chatInputs) {
+      chatInputs = {};
+      searchParams.forEach((value, key) => {
+        chatInputs![key] = value;
+      });
+    }
 
     setConversationList(produce(conversationList, (draft) => {
       draft.unshift({
         id: '-1',
         name: t('app.chat.newChatDefaultName'),
-        inputs: newConversationInputs,
+        inputs: chatInputs,
         introduction: conversationIntroduction,
         suggested_questions: suggestedQuestions,
       })
@@ -368,9 +390,21 @@ const Main: FC<IMainProps> = ({ params }) => {
       return
     }
     const toServerInputs: Record<string, any> = {}
-    if (currInputs) {
-      Object.keys(currInputs).forEach((key) => {
-        const value = currInputs[key]
+
+    // 检查 URL 参数
+    const urlParams: Record<string, any> = {};
+    searchParams.forEach((value, key) => {
+      urlParams[key] = value;
+    });
+
+    // 如果 currInputs 为空但有 URL 参数，使用 URL 参数
+    const effectiveInputs = (!currInputs || Object.keys(currInputs).length === 0) && Object.keys(urlParams).length > 0
+      ? urlParams
+      : currInputs;
+
+    if (effectiveInputs) {
+      Object.keys(effectiveInputs).forEach((key) => {
+        const value = effectiveInputs[key]
         if (value.supportFileType)
           toServerInputs[key] = transformToServerFile(value)
 
@@ -482,8 +516,21 @@ const Main: FC<IMainProps> = ({ params }) => {
           })
           setConversationList(newAllConversations as any)
         }
+
+        // 保存 URL 参数，以便在重置后重新设置
+        const urlParams: Record<string, any> = {};
+        searchParams.forEach((value, key) => {
+          urlParams[key] = value;
+        });
+
         setConversationIdChangeBecauseOfNew(false)
         resetNewConversationInputs()
+
+        // 如果存在 URL 参数，重新设置到 newConversationInputs
+        if (Object.keys(urlParams).length > 0) {
+          setCurrInputs(urlParams)
+        }
+
         setChatNotStarted()
         setCurrConversationId(tempNewConversationId, APP_ID, true)
         setRespondingFalse()
@@ -537,7 +584,7 @@ const Main: FC<IMainProps> = ({ params }) => {
         })
       },
       onMessageEnd: (messageEnd) => {
-        
+
         // 调用token扣除方法
         deductTokens(messageEnd, currInputs)
 
