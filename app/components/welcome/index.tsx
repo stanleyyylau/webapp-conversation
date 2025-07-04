@@ -336,12 +336,14 @@ const Welcome: FC<IWelcomeProps> = ({
     if ((!isPublicVersion && !canEditInputs) || !hasVar)
       return null
 
-    return (
-      <div
-        className='pt-[88px] mb-5'
-      >
-        {isPublicVersion ? renderHasSetInputsPublic() : renderHasSetInputsPrivate()}
-      </div>)
+    return <div className='hasSentInputs'></div>
+    // sn: dont allow to edit inputs
+    // return (
+    //   <div
+    //     className='pt-[88px] mb-5'
+    //   >
+    //     {isPublicVersion ? renderHasSetInputsPublic() : renderHasSetInputsPrivate()}
+    //   </div>)
   }
 
   return (
