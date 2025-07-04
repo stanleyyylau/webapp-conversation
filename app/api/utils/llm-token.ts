@@ -45,8 +45,8 @@ export const checkTokenAvailability = async (inputs?: Record<string, any> | null
             .where(eq(snLlmToken.siteId, siteId))
             .limit(1)
 
-        // 3. 判断token是否足够（不为负数）
-        if (!tokenRecord.length || tokenRecord[0].tokens < 0) {
+        // 3. 判断token是否足够
+        if (!tokenRecord.length || tokenRecord[0].tokens <= 0) {
             console.log('Insufficient tokens for site:', siteId)
             return { hasToken: false, message: 'Insufficient tokens' }
         }
